@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { Constants } = require('../constants');
 const { wsHelper } = require('../utils/ws');
 const { redisClient } = require('../lib/redis');
+const { sseHelper } = require('../utils/sse');
 
 function initializeGameState(gameId, creatorId) {
     const gameState = {
@@ -62,6 +63,7 @@ async function startGame(gameId, userId) {
     }
 
     wsHelper.broadcast(gameId, { type: 'gameStateUpdate', gameState });
+    sseHelper.broadcast(gameId, { type: 'gameStateUpdate', gameState });
     redisClient.set(`game:${gameId}`, JSON.stringify(gameState));
 
     return gameState;
@@ -124,6 +126,7 @@ async function tileClick(gameId, player, row, col) {
 
         // Broadcast the updated game state to all players
         wsHelper.broadcast(gameId, { type: 'gameStateUpdate', gameState: gameData })
+        sseHelper.broadcast(gameId, { type: 'gameStateUpdate', gameState: gameData })
 
     } catch (error) {
         console.error('Error handling tile click:', error);
