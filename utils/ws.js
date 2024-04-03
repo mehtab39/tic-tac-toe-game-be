@@ -1,11 +1,13 @@
 const { WebSocket } = require("ws");
-const wsManager = new Map();
+const wssManager = new Map();
+
 function broadcast(gameId, payload ){
-    if (!wsManager.has(gameId)){
+    if (!wssManager.has(gameId)){
         console.error('ws not available');
         return;
     }
-    wsManager.get(gameId).clients.forEach((client) => {
+    wssManager.get(gameId).clients.forEach((client) => {
+        // client !== wssManager.get(gameId)
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(payload));
         }
@@ -18,6 +20,6 @@ const wsHelper = {
 
 module.exports = {
     wsHelper,
-    wsManager
+    wssManager
 }
 
