@@ -8,7 +8,8 @@ const router = express.Router();
 router.post('/create', async (req, res) => {
     try {
         const userId = req.body.userId;
-        const game = await gameService.createGame(userId);
+        const useAiOpponent = req.body.useAiOpponent;
+        const game = await gameService.createGame(userId, useAiOpponent);
         res.json({ game });
     } catch (error) {
         res.status(500).json({ error: error.message });

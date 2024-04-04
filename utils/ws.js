@@ -8,14 +8,18 @@ function broadcast(gameId, payload ){
     }
     wssManager.get(gameId).clients.forEach((client) => {
         // client !== wssManager.get(gameId)
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(payload));
-        }
+        sendTo(client, payload)
     });
 }
 
+function sendTo(client, payload){
+    if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(payload));
+    }
+}
 const wsHelper = {
-    broadcast
+    broadcast,
+    sendTo
 }
 
 module.exports = {

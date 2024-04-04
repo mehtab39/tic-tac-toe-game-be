@@ -4,8 +4,9 @@ const { Constants } = require('../constants');
 const { wsHelper } = require('../utils/ws');
 const { redisClient } = require('../lib/redis');
 const { sseHelper } = require('../utils/sse');
+const { AiHelper } = require('../lib/ai');
 
-function initializeGameState(gameId, creatorId) {
+async function initializeGameState(gameId, creatorId) {
     const gameState = {
         id: gameId,
         board: Constants.EmptyBoard,
@@ -15,14 +16,18 @@ function initializeGameState(gameId, creatorId) {
         status: Constants.GameState.PENDING,
         winner: '',
     };
-    redisClient.set(`game:${gameId}`, JSON.stringify(gameState));
+    await redisClient.set(`game:${gameId}`, JSON.stringify(gameState));
     return gameState;
 }
 
-function createGame(creatorId) {
-    console.log('Creating game for creator', { creatorId })
+async function createGame(creatorId, useAiOpponent) {
+    console.log('Creating game for creator', { creatorId, useAiOpponent })
     const gameId = uuidv4();
-    const gameState = initializeGameState(gameId, creatorId);
+    const gameState = await initializeGameState(gameId, creatorId);
+    if (useAiOpponent){
+        console.log('Initialising connection with AI');
+        AiHelper.playGame(gameId);
+    }
     return gameState;
 }
 
@@ -60,8 +65,9 @@ async function startGame(gameId, userId) {
     } else {
         console.log('Ready game', { userId })
         gameState['status'] = Constants.GameState.READY;
+        gameState.players.reverse();
     }
-
+   
     wsHelper.broadcast(gameId, { type: 'gameStateUpdate', gameState });
     sseHelper.broadcast(gameId, { type: 'gameStateUpdate', gameState });
     redisClient.set(`game:${gameId}`, JSON.stringify(gameState));
@@ -188,10 +194,11 @@ async function onGameEventPublish(gameId, data){
         await tileClick(gameId, data.player, data.row, data.col);
     }
 }
+
 module.exports = {
     getGame,
     createGame,
     startGame,
     deleteGame,
-    onGameEventPublish
+    onGameEventPublish,
 }

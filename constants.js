@@ -15,10 +15,15 @@ const Signs = {
     Zero: 'O',
     Cross: 'X'
 }
+
+const AiPlayers= {
+    GO: 'ai-go'
+}
 const Constants = {
     GameState,
     Signs,
-    EmptyBoard
+    EmptyBoard,
+    AiPlayers
 }
 
 
