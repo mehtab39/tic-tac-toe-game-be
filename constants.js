@@ -11,19 +11,15 @@ const EmptyBoard =
     ['', '', ''],
     ['', '', '']]
 
-const Signs = {
+const Tokens = {
     Zero: 'O',
     Cross: 'X'
 }
 
-const AiPlayers= {
-    GO: 'ai-go'
-}
 const Constants = {
     GameState,
-    Signs,
+    Tokens,
     EmptyBoard,
-    AiPlayers
 }
 
 

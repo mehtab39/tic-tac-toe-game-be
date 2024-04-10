@@ -116,7 +116,7 @@ async function tileClick(gameId, player, row, col) {
         }
 
         // Update the game state with the player's move
-        gameData.board[row][col] = gameData.players.indexOf(player) === 0 ? Constants.Signs.Zero : Constants.Signs.Cross;
+        gameData.board[row][col] = gameData.players.indexOf(player) === 0 ? Constants.Tokens.Zero : Constants.Tokens.Cross;
 
         const winOrDraw = checkWinOrDraw(gameData.board);
 
