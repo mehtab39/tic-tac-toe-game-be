@@ -21,3 +21,5 @@ dist/
 
 # Test coverage output
 coverage/
+
+log.txt

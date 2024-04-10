@@ -5,6 +5,7 @@ const { wsHelper } = require('../utils/ws');
 const { redisClient } = require('../lib/redis');
 const { sseHelper } = require('../utils/sse');
 const { AiHelper } = require('../lib/ai');
+const { default: axios } = require('axios');
 
 async function initializeGameState(gameId, creatorId) {
     const gameState = {
@@ -25,10 +26,14 @@ async function createGame(creatorId, useAiOpponent) {
     const gameId = uuidv4();
     const gameState = await initializeGameState(gameId, creatorId);
     if (useAiOpponent){
-        console.log('Initialising connection with AI');
-        AiHelper.playGame(gameId);
+        playWithAI(gameId)
     }
     return gameState;
+}
+
+async function playWithAI(gameId){
+    console.log('Initialising connection with AI');
+    await AiHelper.playGame(gameId);
 }
 
 
@@ -116,6 +121,19 @@ async function tileClick(gameId, player, row, col) {
         const winOrDraw = checkWinOrDraw(gameData.board);
 
         if (winOrDraw !== 0) {
+            try{
+               const res =  await axios.post('http://localhost:8081/api/game-stats', {
+                    winner: player,
+                    draw: winOrDraw === 2,
+                    gameId: gameId,
+                    loser: gameData.players[1 - gameData.players.indexOf(player)]
+                })
+
+                console.log('Reeived status  while saving game stats:: ', res.status)
+            }catch(err){
+                console.log('err while saving game stats', err)
+            }
+         
             if (winOrDraw === 1) {
                 gameData['winner'] = player;
             } else {
@@ -200,5 +218,6 @@ module.exports = {
     createGame,
     startGame,
     deleteGame,
+    playWithAI,
     onGameEventPublish,
 }
