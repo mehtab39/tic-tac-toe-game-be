@@ -10,7 +10,8 @@ router.post('/create', async (req, res) => {
     try {
         const userId = req.body.userId;
         const useAiOpponent = req.body.useAiOpponent;
-        const game = await gameService.createGame(userId, useAiOpponent);
+        const createGameLogger = logger.child({ childService: 'create-logger', userId: userId, withAI: useAiOpponent })
+        const game = await gameService.createGame(userId, useAiOpponent, createGameLogger);
         res.json({ game });
     } catch (error) {
         res.status(500).json({ error: error.message });

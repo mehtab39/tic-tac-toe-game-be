@@ -22,18 +22,20 @@ async function initializeGameState(gameId, creatorId) {
     return gameState;
 }
 
-async function createGame(creatorId, useAiOpponent) {
-    logger.info('Creating game for creator: ' + JSON.stringify({ creatorId, useAiOpponent}))
+async function createGame(creatorId, useAiOpponent, logService = logger) {
     const gameId = uuidv4();
+    logService.info(`Creating game with gameId: ${gameId}`)
+
     const gameState = await initializeGameState(gameId, creatorId);
+
     if (useAiOpponent){
-        playWithAI(gameId)
+        playWithAI(gameId, logService)
     }
     return gameState;
 }
 
-async function playWithAI(gameId){
-    logger.info('Initialising connection with AI');
+async function playWithAI(gameId, logService = logger){
+    logService.info(`Initialising connection with AI with gameId: ${gameId}`);
     await AiHelper.playGame(gameId);
 }
 
@@ -218,6 +220,5 @@ module.exports = {
     createGame,
     startGame,
     deleteGame,
-    playWithAI,
     onGameEventPublish,
 }
