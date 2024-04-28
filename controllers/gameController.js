@@ -2,6 +2,7 @@
 const express = require('express');
 const gameService = require('../services/gameService');
 const { sseManager, sseHelper } = require('../utils/sse');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ router.get('/observe/:gameId', (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     const { gameId } = req.params;
-    console.log('Client added');
+    logger.info('Client added');
     const clients = sseManager.get(gameId) || new Set();
 
     clients.add(res);
@@ -55,7 +56,7 @@ router.get('/observe/:gameId', (req, res) => {
     req.on('close', () => {
         clients.delete(res);
         sseManager.set(gameId, clients)
-        console.log('Client disconnected');
+        logger.info('Client disconnected');
     });
 });
 

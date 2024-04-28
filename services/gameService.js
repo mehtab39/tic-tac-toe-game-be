@@ -6,7 +6,8 @@ const { redisClient } = require('../lib/redis');
 const { sseHelper } = require('../utils/sse');
 const { AiHelper } = require('../lib/ai');
 const { default: axios } = require('axios');
-
+const logger = require('../utils/logger');
+//ActiveXObject
 async function initializeGameState(gameId, creatorId) {
     const gameState = {
         id: gameId,
@@ -22,7 +23,7 @@ async function initializeGameState(gameId, creatorId) {
 }
 
 async function createGame(creatorId, useAiOpponent) {
-    console.log('Creating game for creator', { creatorId, useAiOpponent })
+    logger.info('Creating game for creator: ' + JSON.stringify({ creatorId, useAiOpponent}))
     const gameId = uuidv4();
     const gameState = await initializeGameState(gameId, creatorId);
     if (useAiOpponent){
@@ -32,7 +33,7 @@ async function createGame(creatorId, useAiOpponent) {
 }
 
 async function playWithAI(gameId){
-    console.log('Initialising connection with AI');
+    logger.info('Initialising connection with AI');
     await AiHelper.playGame(gameId);
 }
 
@@ -60,15 +61,14 @@ async function startGame(gameId, userId) {
         return null;
     }
 
-    console.log('Pushing', { userId })
 
     gameState.players.push(userId);
 
     if (gameState.players.length === 1) {
-        console.log('Starting game', { userId })
+        logger.info(`Starting game userId: ${userId}`)
         gameState['status'] = Constants.GameState.STARTED;
     } else {
-        console.log('Ready game', { userId })
+        logger.info('Ready game', { userId })
         gameState['status'] = Constants.GameState.READY;
         gameState.players.reverse();
     }
@@ -86,7 +86,7 @@ async function tileClick(gameId, player, row, col) {
         // Retrieve game state from Redis
         const gameState = await redisClient.get(`game:${gameId}`);
         if (!gameState) {
-            console.error('Game state not found for gameId:', gameId);
+            logger.error(`Game state not found for gameId: ${gameId}`);
             return;
         }
 
@@ -95,12 +95,12 @@ async function tileClick(gameId, player, row, col) {
         const gameData = JSON.parse(gameState);
 
         if (![Constants.GameState.ONGOING, Constants.GameState.READY].includes(gameData['status'])) {
-            console.error('Game not yet started', gameId, gameData['status']);
+            logger.error(`Game not yet started ${gameId} status: ${gameData['status']}`);
             return;
         }
 
         if (gameData.players[gameData.currentPlayer] !== player) {
-            console.error('Not your turn!', player, gameId);
+            logger.error(`Not your turn!  ${player} ${gameId}`);
             return;
         }
 
@@ -111,7 +111,7 @@ async function tileClick(gameId, player, row, col) {
 
         // Check if the tile is already occupied
         if (gameData.board[row][col] !== '') {
-            console.log('Tile already occupied');
+            logger.info('Tile already occupied');
             return;
         }
 
@@ -129,9 +129,9 @@ async function tileClick(gameId, player, row, col) {
                     loser: gameData.players[1 - gameData.players.indexOf(player)]
                 })
 
-                console.log('Reeived status  while saving game stats:: ', res.status)
+                logger.info(`Reeived status  while saving game stats:: ${res.status}`)
             }catch(err){
-                console.log('err while saving game stats', err)
+                logger.info(`err while saving game stats: ${err.message}`)
             }
          
             if (winOrDraw === 1) {
@@ -153,7 +153,7 @@ async function tileClick(gameId, player, row, col) {
         sseHelper.broadcast(gameId, { type: 'gameStateUpdate', gameState: gameData })
 
     } catch (error) {
-        console.error('Error handling tile click:', error);
+        logger.error(`Error handling tile click: ${error.message}`);
     }
 }
 

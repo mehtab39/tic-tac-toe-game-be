@@ -1,9 +1,10 @@
 const { WebSocket } = require("ws");
+const logger = require("./logger");
 const wssManager = new Map();
 
 function broadcast(gameId, payload ){
     if (!wssManager.has(gameId)){
-        console.error('ws not available');
+        logger.error('ws not available');
         return;
     }
     wssManager.get(gameId).clients.forEach((client) => {
